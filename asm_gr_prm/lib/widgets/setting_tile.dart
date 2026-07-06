@@ -18,7 +18,9 @@ class SettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
         radius: 22,
@@ -33,6 +35,7 @@ class SettingTile extends StatelessWidget {
           trailing ??
           (onTap == null ? null : const Icon(Icons.chevron_right_rounded)),
       onTap: onTap,
+      ),
     );
   }
 }

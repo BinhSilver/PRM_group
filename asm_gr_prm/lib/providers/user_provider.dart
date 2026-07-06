@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../database/user_repository.dart';
 import '../models/user_model.dart';
 
 class UserProvider extends ChangeNotifier {
   static const String _displayNameKey = 'displayName';
+
+  final UserRepository _userRepository = UserRepository();
 
   UserModel? currentUser = UserModel(
     id: 0,
@@ -13,12 +16,15 @@ class UserProvider extends ChangeNotifier {
     createdAt: DateTime(2026, 1, 1),
   );
 
-  Future<void> loadUser() async {
+  Future<void> loadUser([UserModel? dbUser]) async {
+    currentUser = dbUser ?? await _userRepository.getOrCreateDefaultUser();
+
     final prefs = await SharedPreferences.getInstance();
     final savedDisplayName = prefs.getString(_displayNameKey);
-    if (savedDisplayName == null || savedDisplayName.trim().isEmpty) return;
+    if (savedDisplayName != null && savedDisplayName.trim().isNotEmpty) {
+      currentUser = currentUser!.copyWith(displayName: savedDisplayName.trim());
+    }
 
-    currentUser = currentUser?.copyWith(displayName: savedDisplayName.trim());
     notifyListeners();
   }
 
@@ -29,6 +35,12 @@ class UserProvider extends ChangeNotifier {
     final newName = name.trim();
     if (newName.isEmpty) return;
     currentUser = user.copyWith(displayName: newName);
+
+    try {
+      await _userRepository.updateDisplayName(user.id, newName);
+    } catch (e) {
+      debugPrint('Error updating display name in DB: $e');
+    }
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_displayNameKey, newName);

@@ -5,18 +5,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:asm_gr_prm/main.dart';
 import 'package:asm_gr_prm/providers/theme_provider.dart';
+import 'package:asm_gr_prm/providers/transaction_provider.dart';
 import 'package:asm_gr_prm/providers/user_provider.dart';
 
 Future<void> _pumpApp(
   WidgetTester tester, {
   ThemeProvider? themeProvider,
   UserProvider? userProvider,
+  TransactionProvider? transactionProvider,
 }) async {
   await tester.pumpWidget(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => themeProvider ?? ThemeProvider()),
         ChangeNotifierProvider(create: (_) => userProvider ?? UserProvider()),
+        ChangeNotifierProvider(
+          create: (_) => transactionProvider ?? TransactionProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -43,7 +48,7 @@ void main() {
 
     await tester.tap(find.text('Giao dịch').last);
     await tester.pumpAndSettle();
-    expect(find.text('Quản lý giao dịch'), findsOneWidget);
+    expect(find.text('Danh sách giao dịch'), findsOneWidget);
 
     await tester.tap(find.text('Thống kê').last);
     await tester.pumpAndSettle();
