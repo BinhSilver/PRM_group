@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'database/database_initializer.dart';
 import 'database/test_data_seeder.dart';
+import 'providers/budget_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'providers/user_provider.dart';
@@ -27,12 +28,16 @@ void main() async {
   final transactionProvider = TransactionProvider();
   await transactionProvider.fetchTransactions(defaultUser.id);
 
+  final budgetProvider = BudgetProvider();
+  await budgetProvider.loadBudgets(defaultUser.id);
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => themeProvider),
         ChangeNotifierProvider(create: (_) => userProvider),
         ChangeNotifierProvider(create: (_) => transactionProvider),
+        ChangeNotifierProvider(create: (_) => budgetProvider),
       ],
       child: const MyApp(),
     ),
