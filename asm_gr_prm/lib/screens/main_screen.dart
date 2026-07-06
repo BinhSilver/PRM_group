@@ -5,7 +5,7 @@ import 'home_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'statistics_placeholder_screen.dart';
-import 'transactions_placeholder_screen.dart';
+import 'transaction_list_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
 
   late final List<Widget> _screens = [
     HomeScreen(onTabSelected: _changeTab),
-    const TransactionsPlaceholderScreen(),
+    const TransactionListScreen(),
     const StatisticsPlaceholderScreen(),
     const BudgetPlaceholderScreen(),
     const ProfileScreen(),
