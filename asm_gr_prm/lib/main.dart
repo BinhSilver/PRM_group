@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'providers/theme_provider.dart';
 import 'providers/user_provider.dart';
@@ -9,6 +11,12 @@ import 'utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Khởi tạo database cho Windows/Linux nếu chạy trên Desktop
+  if (Platform.isWindows || Platform.isLinux) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadTheme();

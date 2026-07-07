@@ -24,7 +24,7 @@ class SettingTile extends StatelessWidget {
         radius: 22,
         backgroundColor: Theme.of(
           context,
-        ).colorScheme.primary.withValues(alpha: 0.12),
+        ).colorScheme.primary.withOpacity(0.12),
         child: Icon(icon, color: Theme.of(context).colorScheme.primary),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),

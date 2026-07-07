@@ -59,7 +59,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.14),
+                    color: AppColors.primary.withOpacity(0.14),
                     blurRadius: 16,
                     offset: const Offset(0, 8),
                   ),
@@ -104,7 +104,7 @@ class HomeScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisSpacing: 4,
                 mainAxisSpacing: 8,
-                childAspectRatio: 0.78,
+                childAspectRatio: 0.72,
                 children: [
                   QuickActionCard(
                     icon: Icons.add_card_rounded,
@@ -163,7 +163,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                    backgroundColor: AppColors.primary.withOpacity(0.12),
                     child: const Icon(
                       Icons.lightbulb_rounded,
                       color: AppColors.primary,
@@ -217,7 +217,7 @@ class _OverviewCard extends StatelessWidget {
           colors: isDark
               ? [
                   AppColors.darkSurface,
-                  AppColors.darkSurface.withValues(alpha: 0.88),
+                  AppColors.darkSurface.withOpacity(0.88),
                 ]
               : [Colors.white, const Color(0xFFFFF0F7)],
           begin: Alignment.topLeft,
@@ -226,13 +226,13 @@ class _OverviewCard extends StatelessWidget {
         border: Border.all(
           color: isDark
               ? AppColors.darkBorder
-              : AppColors.primary.withValues(alpha: 0.08),
+              : AppColors.primary.withOpacity(0.08),
         ),
         boxShadow: isDark
             ? []
             : [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: AppColors.primary.withOpacity(0.08),
                   blurRadius: 18,
                   offset: const Offset(0, 8),
                 ),
@@ -255,7 +255,7 @@ class _OverviewCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: AppColors.primary.withOpacity(0.08),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -322,9 +322,9 @@ class _OverviewMetricBox extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final tileColor = isDark
-        ? amountColor.withValues(alpha: 0.12)
-        : amountColor.withValues(alpha: 0.07);
-    final borderColor = amountColor.withValues(alpha: isDark ? 0.24 : 0.14);
+        ? amountColor.withOpacity(0.12)
+        : amountColor.withOpacity(0.07);
+    final borderColor = amountColor.withOpacity(isDark ? 0.24 : 0.14);
 
     return Container(
       constraints: BoxConstraints(minHeight: compact ? 64 : 76),
@@ -344,7 +344,7 @@ class _OverviewMetricBox extends StatelessWidget {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: amountColor.withValues(alpha: isDark ? 0.18 : 0.12),
+                  color: amountColor.withOpacity(isDark ? 0.18 : 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: amountColor, size: 15),
@@ -385,8 +385,8 @@ class _OverviewMetricBox extends StatelessWidget {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(
-                    alpha: isDark ? 0.18 : 0.08,
+                  color: AppColors.primary.withOpacity(
+                    isDark ? 0.18 : 0.08,
                   ),
                   shape: BoxShape.circle,
                 ),

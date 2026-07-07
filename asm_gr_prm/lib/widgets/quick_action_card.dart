@@ -22,28 +22,32 @@ class QuickActionCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 52,
-              height: 52,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: actionColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(18),
+                color: actionColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: actionColor, size: 30),
+              child: Icon(icon, color: actionColor, size: 26),
             ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                height: 1.18,
+            const SizedBox(height: 6),
+            Flexible(
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
+                  height: 1.1,
+                ),
               ),
             ),
           ],

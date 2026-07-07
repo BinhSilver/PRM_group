@@ -87,8 +87,8 @@ class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? AppColors.secondary.withValues(alpha: 0.35)
-              : AppColors.lightTextSub.withValues(alpha: 0.25),
+              ? AppColors.secondary.withOpacity(0.35)
+              : AppColors.lightTextSub.withOpacity(0.25),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
@@ -187,8 +187,8 @@ class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? AppColors.darkPrimary.withValues(alpha: 0.35)
-              : AppColors.darkTextSub.withValues(alpha: 0.25),
+              ? AppColors.darkPrimary.withOpacity(0.35)
+              : AppColors.darkTextSub.withOpacity(0.25),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
