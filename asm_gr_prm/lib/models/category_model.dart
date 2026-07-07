@@ -1,7 +1,7 @@
 class CategoryModel {
   final int? id;
   final String name;
-  final String type; // "income" hoặc "expense"
+  final String type; // "income" or "expense"
   final String? icon;
   final int? userId;
 
@@ -30,6 +30,22 @@ class CategoryModel {
       type: map['type'],
       icon: map['icon'],
       userId: map['userId'],
+    );
+  }
+
+  CategoryModel copyWith({
+    int? id,
+    String? name,
+    String? type,
+    String? icon,
+    int? userId,
+  }) {
+    return CategoryModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      icon: icon ?? this.icon,
+      userId: userId ?? this.userId,
     );
   }
 }

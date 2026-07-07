@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/transaction_provider.dart';
 import '../providers/user_provider.dart';
 import '../utils/app_constants.dart';
+import '../utils/currency_formatter.dart';
 import '../widgets/common_card.dart';
 import '../widgets/quick_action_card.dart';
 import '../widgets/section_title.dart';
@@ -21,6 +23,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().currentUser;
+    final finance = context.watch<TransactionProvider>();
 
     return SafeArea(
       top: false,
@@ -83,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    '0đ',
+                    CurrencyFormatter.format(finance.balance),
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
@@ -93,7 +96,10 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 22),
-            const _OverviewCard(),
+            _OverviewCard(
+              totalIncome: finance.totalIncome,
+              totalExpense: finance.totalExpense,
+            ),
             const SizedBox(height: 22),
             const SectionTitle(title: 'Tiện ích nhanh'),
             CommonCard(
@@ -202,7 +208,13 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _OverviewCard extends StatelessWidget {
-  const _OverviewCard();
+  final double totalIncome;
+  final double totalExpense;
+
+  const _OverviewCard({
+    required this.totalIncome,
+    required this.totalExpense,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -273,7 +285,7 @@ class _OverviewCard extends StatelessWidget {
                 child: _OverviewMetricBox(
                   icon: Icons.trending_up_rounded,
                   title: 'Tổng thu',
-                  amount: '0đ',
+                  amount: CurrencyFormatter.format(totalIncome),
                   amountColor: AppColors.income,
                 ),
               ),
@@ -282,7 +294,7 @@ class _OverviewCard extends StatelessWidget {
                 child: _OverviewMetricBox(
                   icon: Icons.trending_down_rounded,
                   title: 'Tổng chi',
-                  amount: '0đ',
+                  amount: CurrencyFormatter.format(totalExpense),
                   amountColor: AppColors.expense,
                 ),
               ),

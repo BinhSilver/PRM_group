@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'budget_placeholder_screen.dart';
+import 'budget_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
-import 'statistics_placeholder_screen.dart';
+import 'statistics_screen.dart';
 import 'transaction_list_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -20,8 +20,8 @@ class _MainScreenState extends State<MainScreen> {
   late final List<Widget> _screens = [
     HomeScreen(onTabSelected: _changeTab),
     const TransactionListScreen(),
-    const StatisticsPlaceholderScreen(),
-    const BudgetPlaceholderScreen(),
+    const StatisticsScreen(),
+    const BudgetScreen(),
     const ProfileScreen(),
   ];
 
