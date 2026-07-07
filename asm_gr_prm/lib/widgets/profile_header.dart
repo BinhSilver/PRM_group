@@ -42,9 +42,9 @@ class ProfileHeader extends StatelessWidget {
                   ),
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primary.withValues(alpha: 0.18),
-                      AppColors.secondary.withValues(alpha: 0.12),
-                      AppColors.accent.withValues(alpha: 0.10),
+                      AppColors.primary.withOpacity(0.18),
+                      AppColors.secondary.withOpacity(0.12),
+                      AppColors.accent.withOpacity(0.10),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -57,7 +57,7 @@ class ProfileHeader extends StatelessWidget {
                       top: 18,
                       child: Icon(
                         Icons.auto_awesome_rounded,
-                        color: AppColors.accent.withValues(alpha: 0.24),
+                        color: AppColors.accent.withOpacity(0.24),
                         size: 42,
                       ),
                     ),
@@ -66,7 +66,7 @@ class ProfileHeader extends StatelessWidget {
                       bottom: 12,
                       child: Icon(
                         Icons.savings_rounded,
-                        color: AppColors.primary.withValues(alpha: 0.18),
+                        color: AppColors.primary.withOpacity(0.18),
                         size: 54,
                       ),
                     ),
@@ -122,7 +122,7 @@ class ProfileHeader extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.10),
+                                color: Colors.black.withOpacity(0.10),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),

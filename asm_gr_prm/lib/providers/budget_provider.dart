@@ -21,11 +21,20 @@ class BudgetProvider extends ChangeNotifier {
   Future<void> _calculateSpent(int userId) async {
     _spentByMonth.clear();
     for (final b in _budgets) {
+      final parts = b.month.split('-');
+      if (parts.length != 2) continue;
+      
+      final year = int.parse(parts[0]);
+      final month = int.parse(parts[1]);
+      
+      final startDate = DateTime(year, month, 1);
+      final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
+
       final txs = await _txRepo.getTransactions(
         userId,
         type: 'expense',
-        startDate: DateTime.parse('${b.month}-01'),
-        endDate: DateTime.parse('${b.month}-01').add(const Duration(days: 32)),
+        startDate: startDate,
+        endDate: endDate,
       );
       final total = txs.fold<double>(0, (sum, t) => sum + t.amount);
       _spentByMonth[b.month] = total;

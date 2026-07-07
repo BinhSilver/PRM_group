@@ -56,7 +56,11 @@ class TransactionProvider with ChangeNotifier {
         sortOrder: _sortOrder,
       );
 
-      final summary = await _repository.getFinancialSummary(userId);
+      final summary = await _repository.getFinancialSummary(
+        userId,
+        startDate: _startDate,
+        endDate: _endDate,
+      );
       _totalIncome = summary['income'] ?? 0;
       _totalExpense = summary['expense'] ?? 0;
       _balance = summary['balance'] ?? 0;
@@ -79,6 +83,11 @@ class TransactionProvider with ChangeNotifier {
         _startDate = DateTime(now.year, now.month, now.day);
         _endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
         break;
+      case TimeFilterType.yesterday:
+        final yesterday = now.subtract(const Duration(days: 1));
+        _startDate = DateTime(yesterday.year, yesterday.month, yesterday.day);
+        _endDate = DateTime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59);
+        break;
       case TimeFilterType.week:
         _startDate = now.subtract(Duration(days: now.weekday - 1));
         _startDate = DateTime(
@@ -100,9 +109,16 @@ class TransactionProvider with ChangeNotifier {
         _startDate = DateTime(now.year, now.month, 1);
         _endDate = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
         break;
+      case TimeFilterType.lastMonth:
+        _startDate = DateTime(now.year, now.month - 1, 1);
+        _endDate = DateTime(now.year, now.month, 0, 23, 59, 59);
+        break;
       case TimeFilterType.year:
         _startDate = DateTime(now.year, 1, 1);
         _endDate = DateTime(now.year, 12, 31, 23, 59, 59);
+        break;
+      case TimeFilterType.custom:
+        // Giữ nguyên _startDate và _endDate đã được set thủ công
         break;
     }
   }
@@ -142,6 +158,7 @@ class TransactionProvider with ChangeNotifier {
   }
 
   void setDateRange(int userId, DateTime? start, DateTime? end) {
+    _timeFilterType = TimeFilterType.custom;
     _startDate = start;
     _endDate = end;
     fetchTransactions(userId);

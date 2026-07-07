@@ -106,6 +106,8 @@ class TransactionRepository {
   Future<Map<String, double>> getFinancialSummary(
     int userId, {
     String? month,
+    DateTime? startDate,
+    DateTime? endDate,
   }) async {
     final db = await _dbHelper.database;
 
@@ -115,6 +117,16 @@ class TransactionRepository {
     if (month != null) {
       whereClause += " AND strftime('%Y-%m', date) = ?";
       whereArgs.add(month);
+    }
+
+    if (startDate != null) {
+      whereClause += ' AND date >= ?';
+      whereArgs.add(startDate.toIso8601String());
+    }
+
+    if (endDate != null) {
+      whereClause += ' AND date <= ?';
+      whereArgs.add(endDate.toIso8601String());
     }
 
     final List<Map<String, dynamic>> incomeResult = await db.rawQuery(

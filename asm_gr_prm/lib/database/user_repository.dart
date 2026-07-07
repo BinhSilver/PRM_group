@@ -93,6 +93,9 @@ class UserRepository {
       'createdAt': now.toIso8601String(),
     });
 
+    // Tạo danh mục mặc định cho user mới
+    await _dbHelper.seedDefaultCategories(userId: id);
+
     return UserModel(
       id: id,
       username: normalizedUsername,
@@ -191,6 +194,9 @@ class UserRepository {
       'displayName': 'Người dùng',
       'createdAt': DateTime.now().toIso8601String(),
     });
+
+    // Tạo danh mục mặc định cho guest
+    await _dbHelper.seedDefaultCategories(userId: id);
 
     return UserModel(
       id: id,
