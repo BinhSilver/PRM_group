@@ -1,5 +1,5 @@
 import '../database/database_helper.dart';
-import '../models/transaction.dart';
+import '../models/transaction_model.dart';
 
 class TransactionService {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -67,14 +67,8 @@ class TransactionService {
     }
 
     // 5. Validate Ngày tháng
-    if (tx.date.isEmpty) {
-      throw Exception("Ngày giao dịch không được để trống");
-    }
-    try {
-      DateTime.parse(tx.date);
-    } catch (e) {
-      throw Exception("Định dạng ngày tháng không hợp lệ");
-    }
+    // Vì TransactionModel đã dùng DateTime nên tx.date không bao giờ trống ở đây
+    // Nếu muốn check range có thể thêm ở đây
 
     // 6. Validate Ghi chú (nếu có)
     if (tx.note != null && tx.note!.length > 500) {

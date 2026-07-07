@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'add_transaction_screen.dart';
-import '../models/transaction.dart';
-import '../services/transaction_service.dart';
+import '../providers/transaction_provider.dart';
+import '../providers/user_provider.dart';
+import '../providers/budget_provider.dart';
 import '../widgets/section_title.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/transaction_item_card.dart';
+import '../widgets/time_filter_widget.dart';
 import '../utils/app_constants.dart';
 
 class TransactionListScreen extends StatefulWidget {
@@ -16,75 +19,54 @@ class TransactionListScreen extends StatefulWidget {
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
-  final TransactionService _service = TransactionService();
-  List<TransactionModel> _transactions = [];
-  bool _isLoading = true;
-  String? _errorMessage;
-
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTransactions();
+    });
   }
 
   Future<void> _loadTransactions() async {
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final data = await _service.getAllTransactions(1);
-      data.sort((a, b) => b.date.compareTo(a.date));
-
-      if (mounted) {
-        setState(() {
-          _transactions = data;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Không thể tải dữ liệu: ${e.toString()}';
-          _isLoading = false;
-        });
-      }
+    final userProvider = context.read<UserProvider>();
+    if (userProvider.currentUser != null) {
+      context.read<TransactionProvider>().fetchTransactions(userProvider.currentUser!.id);
     }
   }
 
-  Future<bool> _deleteTransaction(int id) async {
+  Future<void> _deleteTransaction(int id) async {
+    final userProvider = context.read<UserProvider>();
+    final txProvider = context.read<TransactionProvider>();
+    final budgetProvider = context.read<BudgetProvider>();
+    if (userProvider.currentUser == null) return;
+
     try {
-      await _service.removeTransaction(id);
-      await _loadTransactions();
+      final userId = userProvider.currentUser!.id;
+      await txProvider.deleteTransaction(id, userId);
+      
+      // Cập nhật lại ngân sách sau khi xóa giao dịch
+      await budgetProvider.loadBudgets(userId);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đã xóa giao dịch')),
         );
       }
-      return true;
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lỗi khi xóa: ${e.toString()}')),
         );
       }
-      return false;
     }
   }
-
-  double get _totalIncome => _transactions
-      .where((tx) => tx.type == 'income')
-      .fold(0, (sum, tx) => sum + tx.amount);
-
-  double get _totalExpense => _transactions
-      .where((tx) => tx.type == 'expense')
-      .fold(0, (sum, tx) => sum + tx.amount);
 
   @override
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
+    final txProvider = context.watch<TransactionProvider>();
+    final transactions = txProvider.transactions;
+    final isLoading = txProvider.isLoading;
 
     return Scaffold(
       body: RefreshIndicator(
@@ -95,13 +77,23 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              TimeFilterWidget(
+                selectedFilter: txProvider.timeFilterType,
+                onFilterChanged: (type) {
+                  final userId = context.read<UserProvider>().currentUser?.id;
+                  if (userId != null) {
+                    txProvider.setFilters(userId: userId, timeType: type);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
                     child: SummaryCard(
                       icon: Icons.trending_up_rounded,
                       title: 'Tổng thu',
-                      amount: currencyFormat.format(_totalIncome),
+                      amount: currencyFormat.format(txProvider.totalIncome),
                       color: AppColors.income,
                     ),
                   ),
@@ -110,7 +102,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     child: SummaryCard(
                       icon: Icons.trending_down_rounded,
                       title: 'Tổng chi',
-                      amount: currencyFormat.format(_totalExpense),
+                      amount: currencyFormat.format(txProvider.totalExpense),
                       color: AppColors.expense,
                     ),
                   ),
@@ -119,29 +111,14 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               const SizedBox(height: 22),
               const SectionTitle(title: 'Lịch sử giao dịch'),
               const SizedBox(height: 12),
-              if (_isLoading)
+              if (isLoading && transactions.isEmpty)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 40),
                     child: CircularProgressIndicator(),
                   ),
                 )
-              else if (_errorMessage != null)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Column(
-                      children: [
-                        Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-                        TextButton(
-                          onPressed: _loadTransactions,
-                          child: const Text('Thử lại'),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else if (_transactions.isEmpty)
+              else if (transactions.isEmpty)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 40),
@@ -152,25 +129,26 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _transactions.length,
+                  itemCount: transactions.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
-                    final tx = _transactions[index];
+                    final tx = transactions[index];
                     return TransactionItemCard(
                       transaction: tx,
                       onTap: () async {
-                        final result = await Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => AddTransactionScreen(transaction: tx),
                           ),
                         );
-                        if (result == true) _loadTransactions();
+                        // TransactionProvider will handle updates via notifyListeners
                       },
-                      onDelete: () {
+                      onDelete: () async {
                         final id = tx.id;
-                        if (id == null) return Future.value(false);
-                        return _deleteTransaction(id);
+                        if (id == null) return false;
+                        await _deleteTransaction(id);
+                        return true;
                       },
                     );
                   },
@@ -181,13 +159,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddTransactionScreen()),
           );
-          if (result == true) {
-            _loadTransactions();
-          }
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add_rounded, color: Colors.white),

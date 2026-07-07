@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/transaction.dart';
+import '../models/transaction_model.dart';
 import '../utils/app_constants.dart';
 import 'common_card.dart';
 
@@ -80,7 +80,7 @@ class TransactionItemCard extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     Text(
-                      dateFormat.format(DateTime.parse(transaction.date)),
+                      dateFormat.format(transaction.date),
                       style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                     ),
                   ],

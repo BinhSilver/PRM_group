@@ -19,39 +19,37 @@ class QuickActionCard extends StatelessWidget {
     final actionColor = color ?? Theme.of(context).colorScheme.primary;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(24),
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: actionColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(icon, color: actionColor, size: 26),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              color: actionColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(22),
             ),
-            const SizedBox(height: 6),
-            Flexible(
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
-                  height: 1.1,
-                ),
+            child: Icon(icon, color: actionColor, size: 32),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                height: 1.1,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -58,11 +58,7 @@ packages:
     source: hosted
     version: "1.19.1"
   crypto:
-<<<<<<< HEAD
-    dependency: transitive
-=======
     dependency: "direct main"
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
     description:
       name: crypto
       sha256: c8ea0233063ba03258fbcf2ca4d6dadfefe14f02fab57702265467a19f27fadf
@@ -81,10 +77,10 @@ packages:
     dependency: transitive
     description:
       name: dev_build
-      sha256: "21df3f741f0f5fc7c45f618e68e206b9f021b1adf83db4004dfaa032996cb0c1"
+      sha256: f2742f154e484a52471dcc7eda17e6da06ab8b1d0a64b4845710d5de4fa9cc47
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.8+2"
+    version: "1.1.7+4"
   equatable:
     dependency: transitive
     description:
@@ -148,8 +144,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-<<<<<<< HEAD
-=======
   font_awesome_flutter:
     dependency: "direct main"
     description:
@@ -158,7 +152,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "11.0.0"
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
   glob:
     dependency: transitive
     description:
@@ -175,8 +168,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
-<<<<<<< HEAD
-=======
   http:
     dependency: transitive
     description:
@@ -193,22 +184,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
   intl:
     dependency: "direct main"
     description:
       name: intl
-<<<<<<< HEAD
-      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.19.0"
-=======
       sha256: "1ca20c894b1717686a2319b8548763d812bc0aabdac580420a44c5178c57a867"
       url: "https://pub.dev"
     source: hosted
     version: "0.20.3"
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
   leak_tracker:
     dependency: transitive
     description:
@@ -269,14 +252,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: "1741988757a65eb6b36abe716829688cf01910bbf91c34354ff7ec1c3de2b349"
+      sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
       url: "https://pub.dev"
     source: hosted
-<<<<<<< HEAD
     version: "1.17.0"
-=======
-    version: "1.18.0"
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
   native_toolchain_c:
     dependency: transitive
     description:
@@ -483,19 +462,13 @@ packages:
     source: hosted
     version: "2.5.8"
   sqflite_common_ffi:
-<<<<<<< HEAD
     dependency: "direct main"
-=======
-    dependency: transitive
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
     description:
       name: sqflite_common_ffi
       sha256: cd0c7f7de39a08f2d54ef144d9058c46eca8461879aaa648025643455c1e5a20
       url: "https://pub.dev"
     source: hosted
     version: "2.4.0+3"
-<<<<<<< HEAD
-=======
   sqflite_common_ffi_web:
     dependency: "direct main"
     description:
@@ -504,7 +477,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
   sqflite_darwin:
     dependency: transitive
     description:
@@ -529,7 +501,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.4"
-<<<<<<< HEAD
   sqlite3_flutter_libs:
     dependency: "direct main"
     description:
@@ -538,8 +509,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.42"
-=======
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
   stack_trace:
     dependency: transitive
     description:
@@ -584,17 +553,10 @@ packages:
     dependency: transitive
     description:
       name: test_api
-<<<<<<< HEAD
       sha256: ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55
       url: "https://pub.dev"
     source: hosted
     version: "0.7.7"
-=======
-      sha256: "949a932224383300f01be9221c39180316445ecb8e7547f70a41a35bf421fb9e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.11"
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
   typed_data:
     dependency: transitive
     description:
@@ -644,9 +606,5 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-<<<<<<< HEAD
   dart: ">=3.10.0 <4.0.0"
-=======
-  dart: ">=3.12.0 <4.0.0"
->>>>>>> 85f70227831c48c5ef9841c2dfc2c30b2b83bce7
   flutter: ">=3.38.0"

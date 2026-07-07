@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/budget_model.dart';
+import '../providers/budget_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/user_provider.dart';
 import '../utils/app_constants.dart';
@@ -22,8 +24,20 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().currentUser;
+    final userProvider = context.watch<UserProvider>();
+    final user = userProvider.currentUser;
     final finance = context.watch<TransactionProvider>();
+    final budgetProvider = context.watch<BudgetProvider>();
+
+    // Calculate remaining budget for current month
+    final now = DateTime.now();
+    final monthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    final currentBudget = budgetProvider.budgets.firstWhere(
+      (b) => b.month == monthKey,
+      orElse: () => BudgetModel(month: monthKey, amount: 0, userId: user?.id ?? 0),
+    );
+    final spent = budgetProvider.getSpent(monthKey);
+    final remainingBudget = currentBudget.amount > 0 ? (currentBudget.amount - spent) : 0.0;
 
     return SafeArea(
       top: false,
@@ -99,64 +113,48 @@ class HomeScreen extends StatelessWidget {
             _OverviewCard(
               totalIncome: finance.totalIncome,
               totalExpense: finance.totalExpense,
+              remainingBudget: remainingBudget,
+              onTabSelected: onTabSelected,
             ),
             const SizedBox(height: 22),
             const SectionTitle(title: 'Tiện ích nhanh'),
             CommonCard(
-              padding: const EdgeInsets.fromLTRB(8, 14, 8, 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
               child: GridView.count(
-                crossAxisCount: 4,
+                crossAxisCount: 3,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.72,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 24,
+                childAspectRatio: 0.8,
                 children: [
                   QuickActionCard(
                     icon: Icons.add_card_rounded,
-                    title: 'Thêm\ngiao dịch',
+                    title: 'Thêm giao dịch',
                     color: AppColors.primary,
                     onTap: () => onTabSelected(1),
                   ),
                   QuickActionCard(
-                    icon: Icons.trending_up_rounded,
-                    title: 'Ghi\nthu nhập',
-                    color: AppColors.income,
-                    onTap: () => onTabSelected(1),
-                  ),
-                  QuickActionCard(
-                    icon: Icons.receipt_long_rounded,
-                    title: 'Ghi\nchi tiêu',
-                    color: AppColors.expense,
-                    onTap: () => onTabSelected(1),
-                  ),
-                  QuickActionCard(
                     icon: Icons.pie_chart_rounded,
-                    title: 'Xem\nthống kê',
+                    title: 'Xem thống kê',
                     color: AppColors.accent,
                     onTap: () => onTabSelected(2),
                   ),
                   QuickActionCard(
                     icon: Icons.account_balance_wallet_rounded,
-                    title: 'Ngân\nsách',
+                    title: 'Ngân sách',
                     color: AppColors.warning,
                     onTap: () => onTabSelected(3),
                   ),
                   QuickActionCard(
                     icon: Icons.person_rounded,
-                    title: 'Hồ\nsơ',
+                    title: 'Hồ sơ',
                     color: AppColors.secondary,
                     onTap: () => onTabSelected(4),
                   ),
                   QuickActionCard(
-                    icon: Icons.lightbulb_rounded,
-                    title: 'Gợi ý\nhôm nay',
-                    color: const Color(0xFF14B8A6),
-                    onTap: () => _showComingSoon(context, 'Gợi ý tài chính'),
-                  ),
-                  QuickActionCard(
                     icon: Icons.apps_rounded,
-                    title: 'Xem\nthêm',
+                    title: 'Xem thêm',
                     color: Colors.grey,
                     onTap: () => _showComingSoon(context, 'Tiện ích mở rộng'),
                   ),
@@ -210,10 +208,14 @@ class HomeScreen extends StatelessWidget {
 class _OverviewCard extends StatelessWidget {
   final double totalIncome;
   final double totalExpense;
+  final double remainingBudget;
+  final ValueChanged<int> onTabSelected;
 
   const _OverviewCard({
     required this.totalIncome,
     required this.totalExpense,
+    required this.remainingBudget,
+    required this.onTabSelected,
   });
 
   @override
@@ -253,30 +255,34 @@ class _OverviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Tổng quan',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+          InkWell(
+            onTap: () => onTabSelected(2), // Chuyển sang tab Thống kê
+            borderRadius: BorderRadius.circular(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Tổng quan',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
-                  shape: BoxShape.circle,
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.primary,
+                    size: 26,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppColors.primary,
-                  size: 26,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -287,6 +293,7 @@ class _OverviewCard extends StatelessWidget {
                   title: 'Tổng thu',
                   amount: CurrencyFormatter.format(totalIncome),
                   amountColor: AppColors.income,
+                  onTap: () => onTabSelected(1), // Chuyển sang tab Giao dịch
                 ),
               ),
               const SizedBox(width: 10),
@@ -296,6 +303,7 @@ class _OverviewCard extends StatelessWidget {
                   title: 'Tổng chi',
                   amount: CurrencyFormatter.format(totalExpense),
                   amountColor: AppColors.expense,
+                  onTap: () => onTabSelected(1), // Chuyển sang tab Giao dịch
                 ),
               ),
             ],
@@ -304,9 +312,10 @@ class _OverviewCard extends StatelessWidget {
           _OverviewMetricBox(
             icon: Icons.savings_rounded,
             title: 'Ngân sách còn lại',
-            amount: '0đ',
+            amount: CurrencyFormatter.format(remainingBudget),
             amountColor: AppColors.warning,
             compact: true,
+            onTap: () => onTabSelected(3), // Chuyển sang tab Ngân sách
           ),
         ],
       ),
@@ -320,6 +329,7 @@ class _OverviewMetricBox extends StatelessWidget {
   final String amount;
   final Color amountColor;
   final bool compact;
+  final VoidCallback? onTap;
 
   const _OverviewMetricBox({
     required this.icon,
@@ -327,6 +337,7 @@ class _OverviewMetricBox extends StatelessWidget {
     required this.amount,
     required this.amountColor,
     this.compact = false,
+    this.onTap,
   });
 
   @override
@@ -338,79 +349,83 @@ class _OverviewMetricBox extends StatelessWidget {
         : amountColor.withOpacity(0.07);
     final borderColor = amountColor.withOpacity(isDark ? 0.24 : 0.14);
 
-    return Container(
-      constraints: BoxConstraints(minHeight: compact ? 64 : 76),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: tileColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: amountColor.withOpacity(isDark ? 0.18 : 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: amountColor, size: 15),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        constraints: BoxConstraints(minHeight: compact ? 64 : 76),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: tileColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: amountColor.withOpacity(isDark ? 0.18 : 0.12),
+                    shape: BoxShape.circle,
                   ),
+                  child: Icon(icon, color: amountColor, size: 15),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
+                const SizedBox(width: 8),
+                Expanded(
                   child: Text(
-                    amount,
+                    title,
                     maxLines: 1,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: amountColor,
-                      fontWeight: FontWeight.w700,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(
-                    isDark ? 0.18 : 0.08,
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      amount,
+                      maxLines: 1,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: amountColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                  shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.chevron_right_rounded,
-                  color: isDark ? AppColors.darkPrimary : AppColors.primary,
-                  size: 18,
+                const SizedBox(width: 4),
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(
+                      isDark ? 0.18 : 0.08,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: isDark ? AppColors.darkPrimary : AppColors.primary,
+                    size: 18,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

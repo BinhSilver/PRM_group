@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/transaction.dart';
+import '../models/transaction_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -45,32 +45,38 @@ class DatabaseHelper {
       'displayName': 'Người dùng thử nghiệm'
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
+    await seedDefaultCategories(userId: 1, db: db);
+  }
+
+  Future<void> seedDefaultCategories({required int userId, Database? db}) async {
+    final executor = db ?? await database;
+    
     final defaultCategories = [
       // Chi tiêu (Expenses)
-      {'name': 'Ăn uống', 'type': 'expense', 'icon': 'restaurant', 'userId': 1},
-      {'name': 'Di chuyển', 'type': 'expense', 'icon': 'directions_car', 'userId': 1},
-      {'name': 'Mua sắm', 'type': 'expense', 'icon': 'shopping_cart', 'userId': 1},
-      {'name': 'Giải trí', 'type': 'expense', 'icon': 'movie', 'userId': 1},
-      {'name': 'Sức khỏe', 'type': 'expense', 'icon': 'medical_services', 'userId': 1},
-      {'name': 'Giáo dục', 'type': 'expense', 'icon': 'school', 'userId': 1},
-      {'name': 'Hóa đơn', 'type': 'expense', 'icon': 'receipt_long', 'userId': 1},
-      {'name': 'Nhà cửa', 'type': 'expense', 'icon': 'home', 'userId': 1},
-      {'name': 'Du lịch', 'type': 'expense', 'icon': 'flight', 'userId': 1},
-      {'name': 'Gia đình', 'type': 'expense', 'icon': 'family_restroom', 'userId': 1},
-      {'name': 'Khác', 'type': 'expense', 'icon': 'more_horiz', 'userId': 1},
+      {'name': 'Ăn uống', 'type': 'expense', 'icon': 'restaurant', 'userId': userId},
+      {'name': 'Di chuyển', 'type': 'expense', 'icon': 'directions_car', 'userId': userId},
+      {'name': 'Mua sắm', 'type': 'expense', 'icon': 'shopping_cart', 'userId': userId},
+      {'name': 'Giải trí', 'type': 'expense', 'icon': 'movie', 'userId': userId},
+      {'name': 'Sức khỏe', 'type': 'expense', 'icon': 'medical_services', 'userId': userId},
+      {'name': 'Giáo dục', 'type': 'expense', 'icon': 'school', 'userId': userId},
+      {'name': 'Hóa đơn', 'type': 'expense', 'icon': 'receipt_long', 'userId': userId},
+      {'name': 'Nhà cửa', 'type': 'expense', 'icon': 'home', 'userId': userId},
+      {'name': 'Du lịch', 'type': 'expense', 'icon': 'flight', 'userId': userId},
+      {'name': 'Gia đình', 'type': 'expense', 'icon': 'family_restroom', 'userId': userId},
+      {'name': 'Khác', 'type': 'expense', 'icon': 'more_horiz', 'userId': userId},
 
       // Thu nhập (Income)
-      {'name': 'Lương', 'type': 'income', 'icon': 'payments', 'userId': 1},
-      {'name': 'Tiền thưởng', 'type': 'income', 'icon': 'card_giftcard', 'userId': 1},
-      {'name': 'Làm thêm', 'type': 'income', 'icon': 'work', 'userId': 1},
-      {'name': 'Kinh doanh', 'type': 'income', 'icon': 'storefront', 'userId': 1},
-      {'name': 'Đầu tư', 'type': 'income', 'icon': 'trending_up', 'userId': 1},
-      {'name': 'Hoàn tiền', 'type': 'income', 'icon': 'assignment_return', 'userId': 1},
-      {'name': 'Khác', 'type': 'income', 'icon': 'add_card', 'userId': 1},
+      {'name': 'Lương', 'type': 'income', 'icon': 'payments', 'userId': userId},
+      {'name': 'Tiền thưởng', 'type': 'income', 'icon': 'card_giftcard', 'userId': userId},
+      {'name': 'Làm thêm', 'type': 'income', 'icon': 'work', 'userId': userId},
+      {'name': 'Kinh doanh', 'type': 'income', 'icon': 'storefront', 'userId': userId},
+      {'name': 'Đầu tư', 'type': 'income', 'icon': 'trending_up', 'userId': userId},
+      {'name': 'Hoàn tiền', 'type': 'income', 'icon': 'assignment_return', 'userId': userId},
+      {'name': 'Khác', 'type': 'income', 'icon': 'add_card', 'userId': userId},
     ];
 
     for (final category in defaultCategories) {
-      await db.insert(
+      await executor.insert(
         tableCategories,
         category,
         conflictAlgorithm: ConflictAlgorithm.ignore,
