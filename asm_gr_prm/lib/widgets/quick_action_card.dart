@@ -19,22 +19,30 @@ class QuickActionCard extends StatelessWidget {
     final actionColor = color ?? Theme.of(context).colorScheme.primary;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 68,
-            height: 68,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: actionColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(22),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: actionColor.withValues(alpha: 0.12)),
+              boxShadow: [
+                BoxShadow(
+                  color: actionColor.withValues(alpha: 0.10),
+                  blurRadius: 14,
+                  offset: const Offset(0, 7),
+                ),
+              ],
             ),
-            child: Icon(icon, color: actionColor, size: 32),
+            child: Icon(icon, color: actionColor, size: 30),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 9),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
@@ -43,9 +51,9 @@ class QuickActionCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 12,
-                height: 1.1,
+                height: 1.18,
               ),
             ),
           ),

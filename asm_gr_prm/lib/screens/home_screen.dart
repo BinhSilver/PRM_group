@@ -34,10 +34,13 @@ class HomeScreen extends StatelessWidget {
     final monthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
     final currentBudget = budgetProvider.budgets.firstWhere(
       (b) => b.month == monthKey,
-      orElse: () => BudgetModel(month: monthKey, amount: 0, userId: user?.id ?? 0),
+      orElse: () =>
+          BudgetModel(month: monthKey, amount: 0, userId: user?.id ?? 0),
     );
     final spent = budgetProvider.getSpent(monthKey);
-    final remainingBudget = currentBudget.amount > 0 ? (currentBudget.amount - spent) : 0.0;
+    final remainingBudget = currentBudget.amount > 0
+        ? (currentBudget.amount - spent)
+        : 0.0;
 
     return SafeArea(
       top: false,
@@ -65,20 +68,20 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [
-                    Color(0xFFE85AA8),
-                    Color(0xFFD75EC4),
-                    Color(0xFFB46EE6),
+                    AppColors.primary.withValues(alpha: 0.92),
+                    AppColors.secondary.withValues(alpha: 0.84),
+                    const Color(0xFFFFD6EA),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.14),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
+                    color: AppColors.primary.withValues(alpha: 0.16),
+                    blurRadius: 22,
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
@@ -119,7 +122,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 22),
             const SectionTitle(title: 'Tiện ích nhanh'),
             CommonCard(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+              padding: const EdgeInsets.fromLTRB(12, 18, 12, 12),
               child: GridView.count(
                 crossAxisCount: 3,
                 shrinkWrap: true,
@@ -147,10 +150,10 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => onTabSelected(3),
                   ),
                   QuickActionCard(
-                    icon: Icons.person_rounded,
-                    title: 'Hồ sơ',
+                    icon: Icons.tips_and_updates_rounded,
+                    title: 'Gợi ý nhanh',
                     color: AppColors.secondary,
-                    onTap: () => onTabSelected(4),
+                    onTap: () => _showComingSoon(context, 'Gợi ý nhanh'),
                   ),
                   QuickActionCard(
                     icon: Icons.apps_rounded,
@@ -167,7 +170,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
-                    backgroundColor: AppColors.primary.withOpacity(0.12),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                     child: const Icon(
                       Icons.lightbulb_rounded,
                       color: AppColors.primary,
@@ -224,14 +227,14 @@ class _OverviewCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
           colors: isDark
               ? [
                   AppColors.darkSurface,
-                  AppColors.darkSurface.withOpacity(0.88),
+                  AppColors.darkSurface.withValues(alpha: 0.88),
                 ]
               : [Colors.white, const Color(0xFFFFF0F7)],
           begin: Alignment.topLeft,
@@ -240,15 +243,15 @@ class _OverviewCard extends StatelessWidget {
         border: Border.all(
           color: isDark
               ? AppColors.darkBorder
-              : AppColors.primary.withOpacity(0.08),
+              : AppColors.primary.withValues(alpha: 0.08),
         ),
         boxShadow: isDark
             ? []
             : [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.08),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
+                  color: AppColors.primary.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 7),
                 ),
               ],
       ),
@@ -265,26 +268,27 @@ class _OverviewCard extends StatelessWidget {
                     'Tổng quan',
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
+                      fontSize: 20,
                     ),
                   ),
                 ),
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
+                    color: AppColors.primary.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.chevron_right_rounded,
                     color: AppColors.primary,
-                    size: 26,
+                    size: 24,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -296,7 +300,7 @@ class _OverviewCard extends StatelessWidget {
                   onTap: () => onTabSelected(1), // Chuyển sang tab Giao dịch
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: _OverviewMetricBox(
                   icon: Icons.trending_down_rounded,
@@ -308,7 +312,7 @@ class _OverviewCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _OverviewMetricBox(
             icon: Icons.savings_rounded,
             title: 'Ngân sách còn lại',
@@ -345,88 +349,144 @@ class _OverviewMetricBox extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final tileColor = isDark
-        ? amountColor.withOpacity(0.12)
-        : amountColor.withOpacity(0.07);
-    final borderColor = amountColor.withOpacity(isDark ? 0.24 : 0.14);
+        ? amountColor.withValues(alpha: 0.12)
+        : amountColor.withValues(alpha: 0.07);
+    final borderColor = amountColor.withValues(alpha: isDark ? 0.24 : 0.14);
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        constraints: BoxConstraints(minHeight: compact ? 64 : 76),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        constraints: BoxConstraints(minHeight: compact ? 54 : 62),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: tileColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(color: borderColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: amountColor.withOpacity(isDark ? 0.18 : 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: amountColor, size: 15),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      amount,
-                      maxLines: 1,
-                      style: theme.textTheme.headlineSmall?.copyWith(
+          children: compact
+              ? [
+                  Row(
+                    children: [
+                      _MetricIcon(
+                        icon: icon,
                         color: amountColor,
-                        fontWeight: FontWeight.w700,
+                        isDark: isDark,
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            amount,
+                            maxLines: 1,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: amountColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.primary.withValues(alpha: 0.65),
+                        size: 20,
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 4),
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(
-                      isDark ? 0.18 : 0.08,
-                    ),
-                    shape: BoxShape.circle,
+                ]
+              : [
+                  Row(
+                    children: [
+                      _MetricIcon(
+                        icon: icon,
+                        color: amountColor,
+                        isDark: isDark,
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    Icons.chevron_right_rounded,
-                    color: isDark ? AppColors.darkPrimary : AppColors.primary,
-                    size: 18,
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            amount,
+                            maxLines: 1,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: amountColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.primary.withValues(alpha: 0.65),
+                        size: 20,
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
         ),
       ),
+    );
+  }
+}
+
+class _MetricIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+
+  const _MetricIcon({
+    required this.icon,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 23,
+      height: 23,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? 0.18 : 0.12),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, color: color, size: 14),
     );
   }
 }

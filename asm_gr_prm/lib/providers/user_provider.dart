@@ -9,18 +9,21 @@ enum AuthState { initial, loading, authenticated, unauthenticated }
 
 class UserProvider extends ChangeNotifier {
   static const String _displayNameKey = 'displayName';
+  static String _avatarBase64Key(int userId) => 'avatarBase64_$userId';
 
   final UserRepository _userRepository = UserRepository();
   final AuthService _authService = AuthService();
 
   AuthState _authState = AuthState.initial;
   UserModel? _currentUser;
+  String? _avatarBase64;
   String? _errorMessage;
 
   // ───────────── Getters ─────────────
 
   AuthState get authState => _authState;
   UserModel? get currentUser => _currentUser;
+  String? get avatarBase64 => _avatarBase64;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _authState == AuthState.authenticated;
   bool get isLoading => _authState == AuthState.loading;
@@ -51,6 +54,7 @@ class UserProvider extends ChangeNotifier {
       // Áp dụng displayName đã lưu local nếu có
       final prefs = await SharedPreferences.getInstance();
       final savedName = prefs.getString(_displayNameKey);
+      _avatarBase64 = prefs.getString(_avatarBase64Key(user.id));
       _currentUser = (savedName != null && savedName.trim().isNotEmpty)
           ? user.copyWith(displayName: savedName.trim())
           : user;
@@ -85,6 +89,7 @@ class UserProvider extends ChangeNotifier {
       );
 
       _currentUser = user;
+      _avatarBase64 = null;
       _authState = AuthState.authenticated;
 
       // Lưu session (mặc định không remember sau đăng ký)
@@ -131,6 +136,8 @@ class UserProvider extends ChangeNotifier {
       );
 
       _currentUser = user;
+      final prefs = await SharedPreferences.getInstance();
+      _avatarBase64 = prefs.getString(_avatarBase64Key(user.id));
       _authState = AuthState.authenticated;
 
       await _authService.saveSession(
@@ -160,6 +167,7 @@ class UserProvider extends ChangeNotifier {
   Future<void> logout() async {
     await _authService.clearSession();
     _currentUser = null;
+    _avatarBase64 = null;
     _errorMessage = null;
     _authState = AuthState.unauthenticated;
     notifyListeners();
@@ -183,6 +191,23 @@ class UserProvider extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_displayNameKey, newName);
+
+    notifyListeners();
+  }
+
+  Future<void> updateAvatarBase64(String? avatarBase64) async {
+    final user = _currentUser;
+    if (user == null) return;
+
+    _avatarBase64 = avatarBase64;
+
+    final prefs = await SharedPreferences.getInstance();
+    final key = _avatarBase64Key(user.id);
+    if (avatarBase64 == null || avatarBase64.isEmpty) {
+      await prefs.remove(key);
+    } else {
+      await prefs.setString(key, avatarBase64);
+    }
 
     notifyListeners();
   }
@@ -215,6 +240,7 @@ class UserProvider extends ChangeNotifier {
 
   void setCurrentUser(UserModel user) {
     _currentUser = user;
+    _avatarBase64 = null;
     notifyListeners();
   }
 
@@ -224,8 +250,11 @@ class UserProvider extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     final savedDisplayName = prefs.getString(_displayNameKey);
+    _avatarBase64 = prefs.getString(_avatarBase64Key(_currentUser!.id));
     if (savedDisplayName != null && savedDisplayName.trim().isNotEmpty) {
-      _currentUser = _currentUser!.copyWith(displayName: savedDisplayName.trim());
+      _currentUser = _currentUser!.copyWith(
+        displayName: savedDisplayName.trim(),
+      );
     }
 
     _authState = AuthState.authenticated;
@@ -250,4 +279,3 @@ class UserProvider extends ChangeNotifier {
     return 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
   }
 }
-
