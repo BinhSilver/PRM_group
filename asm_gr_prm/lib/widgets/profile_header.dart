@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../models/user_model.dart';
@@ -6,21 +8,35 @@ import 'common_card.dart';
 
 class ProfileHeader extends StatelessWidget {
   final UserModel? user;
+  final String? avatarBase64;
   final VoidCallback? onEditProfile;
-  final VoidCallback? onOpenSettings;
+  final VoidCallback? onChangeAvatar;
 
   const ProfileHeader({
     super.key,
     required this.user,
+    this.avatarBase64,
     this.onEditProfile,
-    this.onOpenSettings,
+    this.onChangeAvatar,
   });
+
+  ImageProvider? _avatarImageProvider() {
+    final data = avatarBase64;
+    if (data == null || data.isEmpty) return null;
+
+    try {
+      return MemoryImage(base64Decode(data));
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final displayName = user?.displayName ?? 'Người dùng';
     final username = user?.username ?? 'guest';
     final createdAt = user?.createdAt;
+    final avatarImage = _avatarImageProvider();
     final createdDate = createdAt == null
         ? 'Chưa có thông tin'
         : 'Tạo tài khoản: ${createdAt.day}/${createdAt.month}/${createdAt.year}';
@@ -42,9 +58,9 @@ class ProfileHeader extends StatelessWidget {
                   ),
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primary.withOpacity(0.18),
-                      AppColors.secondary.withOpacity(0.12),
-                      AppColors.accent.withOpacity(0.10),
+                      AppColors.primary.withValues(alpha: 0.14),
+                      AppColors.momoTint,
+                      AppColors.secondary.withValues(alpha: 0.10),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -57,7 +73,7 @@ class ProfileHeader extends StatelessWidget {
                       top: 18,
                       child: Icon(
                         Icons.auto_awesome_rounded,
-                        color: AppColors.accent.withOpacity(0.24),
+                        color: AppColors.accent.withValues(alpha: 0.24),
                         size: 42,
                       ),
                     ),
@@ -66,7 +82,7 @@ class ProfileHeader extends StatelessWidget {
                       bottom: 12,
                       child: Icon(
                         Icons.savings_rounded,
-                        color: AppColors.primary.withOpacity(0.18),
+                        color: AppColors.primary.withValues(alpha: 0.18),
                         size: 54,
                       ),
                     ),
@@ -79,59 +95,76 @@ class ProfileHeader extends StatelessWidget {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    Container(
-                      width: 92,
-                      height: 92,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).cardTheme.color,
-                        border: Border.all(
-                          color:
-                              Theme.of(context).cardTheme.color ?? Colors.white,
-                          width: 6,
-                        ),
-                      ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onChangeAvatar,
                       child: Container(
-                        margin: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
+                        width: 92,
+                        height: 92,
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [AppColors.primary, AppColors.accent],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                          color: Theme.of(context).cardTheme.color,
+                          border: Border.all(
+                            color:
+                                Theme.of(context).cardTheme.color ??
+                                Colors.white,
+                            width: 6,
                           ),
                         ),
-                        child: const Icon(
-                          Icons.person_rounded,
-                          color: Colors.white,
-                          size: 44,
+                        child: ClipOval(
+                          child: avatarImage == null
+                              ? Container(
+                                  margin: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.primary,
+                                        AppColors.secondary,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    color: Colors.white,
+                                    size: 44,
+                                  ),
+                                )
+                              : Image(
+                                  image: avatarImage,
+                                  width: 92,
+                                  height: 92,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                       ),
                     ),
                     Positioned(
-                      right: -2,
-                      bottom: 6,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(18),
-                        onTap: onEditProfile,
-                        child: Container(
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
+                      right: 0,
+                      bottom: 0,
+                      child: Tooltip(
+                        message: 'Cập nhật ảnh đại diện',
+                        child: SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: Material(
                             color: Theme.of(context).cardTheme.color,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.10),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                            shape: const CircleBorder(),
+                            elevation: 6,
+                            shadowColor: Colors.black.withValues(alpha: 0.16),
+                            child: InkResponse(
+                              onTap: onChangeAvatar,
+                              radius: 24,
+                              containedInkWell: true,
+                              customBorder: const CircleBorder(),
+                              child: Icon(
+                                Icons.photo_camera_rounded,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 19,
                               ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.edit_rounded,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 18,
+                            ),
                           ),
                         ),
                       ),
@@ -158,11 +191,6 @@ class ProfileHeader extends StatelessWidget {
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                     ),
-                    IconButton(
-                      tooltip: 'Cài đặt',
-                      onPressed: onOpenSettings,
-                      icon: const Icon(Icons.settings_rounded),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 2),
@@ -187,14 +215,6 @@ class ProfileHeader extends StatelessWidget {
                         onPressed: onEditProfile,
                         icon: const Icon(Icons.edit_rounded, size: 18),
                         label: const Text('Sửa hồ sơ'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onOpenSettings,
-                        icon: const Icon(Icons.settings_rounded, size: 18),
-                        label: const Text('Cài đặt'),
                       ),
                     ),
                   ],

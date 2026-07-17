@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/app_constants.dart';
 import 'budget_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
@@ -57,31 +58,49 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _changeTab,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_rounded),
-            label: 'Trang chủ',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.10),
+              blurRadius: 24,
+              offset: const Offset(0, -8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: _changeTab,
+            selectedIconTheme: const IconThemeData(size: 28),
+            unselectedIconTheme: const IconThemeData(size: 25),
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.dashboard_rounded),
+                label: 'Trang chủ',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.receipt_long_rounded),
+                label: 'Giao dịch',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.pie_chart_rounded),
+                label: 'Thống kê',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_balance_wallet_rounded),
+                label: 'Ngân sách',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_rounded),
+                label: 'Hồ sơ',
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long_rounded),
-            label: 'Giao dịch',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pie_chart_rounded),
-            label: 'Thống kê',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_rounded),
-            label: 'Ngân sách',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Hồ sơ',
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -201,7 +201,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: DropdownButtonFormField<int>(
-                            value: _selectedCategoryId,
+                            initialValue: _selectedCategoryId,
                             isExpanded: true,
                             menuMaxHeight: 300, // Giới hạn chiều cao menu dropdown
                             decoration: InputDecoration(

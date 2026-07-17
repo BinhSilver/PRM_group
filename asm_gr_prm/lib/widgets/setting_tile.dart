@@ -24,7 +24,7 @@ class SettingTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveIconColor =
         iconColor ?? Theme.of(context).colorScheme.primary;
-    final effectiveBgColor = effectiveIconColor.withOpacity(0.12);
+    final effectiveBgColor = effectiveIconColor.withValues(alpha: 0.12);
 
     return Material(
       color: Colors.transparent,
@@ -37,10 +37,7 @@ class SettingTile extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: titleColor,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700, color: titleColor),
         ),
         subtitle: subtitle == null ? null : Text(subtitle!),
         trailing:

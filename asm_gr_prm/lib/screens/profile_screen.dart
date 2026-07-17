@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
@@ -20,6 +23,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   bool _isEditingName = false;
+  bool _isPickingAvatar = false;
   String? _nameErrorText;
 
   @override
@@ -63,175 +67,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ).showSnackBar(const SnackBar(content: Text('Cập nhật hồ sơ thành công')));
   }
 
-  Future<void> _showChangePasswordDialog(BuildContext context) async {
-    final oldCtrl = TextEditingController();
-    final newCtrl = TextEditingController();
-    final confirmCtrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    bool obscureOld = true;
-    bool obscureNew = true;
-    bool obscureConfirm = true;
-    bool isLoading = false;
+  Future<void> _pickAvatar() async {
+    if (_isPickingAvatar) return;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.darkPrimary : AppColors.primary;
+    setState(() => _isPickingAvatar = true);
+    try {
+      final image = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 82,
+      );
+      if (image == null) return;
 
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor:
-              isDark ? AppColors.darkSurface : AppColors.lightSurface,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-          title: Row(
-            children: [
-              Icon(Icons.lock_reset_rounded, color: primaryColor),
-              const SizedBox(width: 10),
-              const Text('Đổi mật khẩu',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
-            ],
-          ),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildDialogField(
-                  controller: oldCtrl,
-                  label: 'Mật khẩu hiện tại',
-                  obscure: obscureOld,
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  onToggleObscure: () =>
-                      setDialogState(() => obscureOld = !obscureOld),
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Vui lòng nhập' : null,
-                ),
-                const SizedBox(height: 12),
-                _buildDialogField(
-                  controller: newCtrl,
-                  label: 'Mật khẩu mới',
-                  obscure: obscureNew,
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  onToggleObscure: () =>
-                      setDialogState(() => obscureNew = !obscureNew),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Vui lòng nhập';
-                    if (v.length < 6) return 'Ít nhất 6 ký tự';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                _buildDialogField(
-                  controller: confirmCtrl,
-                  label: 'Xác nhận mật khẩu mới',
-                  obscure: obscureConfirm,
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  onToggleObscure: () =>
-                      setDialogState(() => obscureConfirm = !obscureConfirm),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Vui lòng nhập';
-                    if (v != newCtrl.text) return 'Không khớp';
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: isLoading ? null : () => Navigator.of(dialogContext).pop(),
-              child: const Text('Hủy'),
-            ),
-            ElevatedButton(
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      if (!formKey.currentState!.validate()) return;
-                      setDialogState(() => isLoading = true);
+      final bytes = await image.readAsBytes();
+      final avatarBase64 = base64Encode(bytes);
 
-                      final error =
-                          await context.read<UserProvider>().changePassword(
-                                oldPassword: oldCtrl.text,
-                                newPassword: newCtrl.text,
-                              );
+      if (!mounted) return;
+      await context.read<UserProvider>().updateAvatarBase64(avatarBase64);
+      if (!mounted) return;
 
-                      if (!ctx.mounted) return;
-                      Navigator.of(dialogContext).pop();
-
-                      if (error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(error),
-                          backgroundColor: AppColors.expense,
-                        ));
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Đổi mật khẩu thành công!'),
-                          ),
-                        );
-                      }
-                    },
-              child: isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Text('Xác nhận'),
-            ),
-          ],
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật ảnh đại diện thành công')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể chọn ảnh. Vui lòng thử lại.'),
+          backgroundColor: AppColors.expense,
         ),
-      ),
-    );
-
-    oldCtrl.dispose();
-    newCtrl.dispose();
-    confirmCtrl.dispose();
-  }
-
-  TextFormField _buildDialogField({
-    required TextEditingController controller,
-    required String label,
-    required bool obscure,
-    required bool isDark,
-    required Color primaryColor,
-    required VoidCallback onToggleObscure,
-    required String? Function(String?) validator,
-  }) {
-    final subColor = isDark ? AppColors.darkTextSub : AppColors.lightTextSub;
-    return TextFormField(
-      controller: controller,
-      obscureText: obscure,
-      style: TextStyle(
-          color: isDark ? AppColors.darkTextMain : AppColors.lightTextMain),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(fontSize: 13, color: subColor),
-        suffixIcon: IconButton(
-          icon: Icon(
-            obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-            color: subColor,
-            size: 18,
-          ),
-          onPressed: onToggleObscure,
-        ),
-        filled: true,
-        fillColor: isDark ? const Color(0xFF2F1B38) : const Color(0xFFFDF0F9),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-              color: isDark ? AppColors.darkBorder : const Color(0xFFEEE0F0)),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      ),
-      validator: validator,
-    );
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isPickingAvatar = false);
+      }
+    }
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
@@ -267,7 +138,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Điều hướng về màn hình đăng nhập, xóa toàn bộ stack
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const LoginScreen(),
         transitionDuration: const Duration(milliseconds: 500),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(opacity: animation, child: child),
@@ -278,7 +150,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().currentUser;
+    final userProvider = context.watch<UserProvider>();
+    final user = userProvider.currentUser;
     final displayName = user?.displayName ?? 'Người dùng';
     final createdAt = user?.createdAt;
     final createdDate = createdAt == null
@@ -294,10 +167,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             ProfileHeader(
               user: user,
+              avatarBase64: userProvider.avatarBase64,
               onEditProfile: () => _startEditName(displayName),
-              onOpenSettings: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+              onChangeAvatar: _pickAvatar,
             ),
             if (_isEditingName) ...[
               const SizedBox(height: 14),
@@ -381,26 +253,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   SettingTile(
-                    icon: Icons.edit_rounded,
-                    title: 'Chỉnh sửa hồ sơ',
-                    subtitle: 'Cập nhật tên hiển thị',
-                    onTap: () => _startEditName(displayName),
-                  ),
-                  const Divider(height: 8),
-                  SettingTile(
-                    icon: Icons.lock_reset_rounded,
-                    title: 'Đổi mật khẩu',
-                    subtitle: 'Thay đổi mật khẩu đăng nhập',
-                    onTap: () => _showChangePasswordDialog(context),
-                  ),
-                  const Divider(height: 8),
-                  SettingTile(
                     icon: Icons.settings_rounded,
                     title: 'Cài đặt',
                     subtitle: 'Chế độ tối và thông tin ứng dụng',
                     onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (_) => const SettingsScreen()),
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
                     ),
                   ),
                   const Divider(height: 8),
