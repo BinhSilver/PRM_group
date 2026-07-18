@@ -5,6 +5,7 @@ import 'budget_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
+import 'spending_jars_screen.dart';
 import 'statistics_screen.dart';
 import 'transaction_list_screen.dart';
 
@@ -22,7 +23,8 @@ class _MainScreenState extends State<MainScreen> {
     HomeScreen(onTabSelected: _changeTab),
     const TransactionListScreen(),
     const StatisticsScreen(),
-    const BudgetScreen(),
+    BudgetScreen(onOpenSpendingJars: () => _changeTab(4)),
+    const SpendingJarsScreen(),
     const ProfileScreen(),
   ];
 
@@ -31,6 +33,7 @@ class _MainScreenState extends State<MainScreen> {
     'Giao dịch',
     'Thống kê',
     'Ngân sách',
+    'Hũ chi tiêu',
     'Hồ sơ',
   ];
 
@@ -93,6 +96,10 @@ class _MainScreenState extends State<MainScreen> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.account_balance_wallet_rounded),
                 label: 'Ngân sách',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.savings_rounded),
+                label: 'Hũ',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person_rounded),

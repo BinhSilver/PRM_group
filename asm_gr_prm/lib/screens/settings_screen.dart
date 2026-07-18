@@ -12,163 +12,15 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   Future<void> _showChangePasswordDialog(BuildContext context) async {
-    final oldCtrl = TextEditingController();
-    final newCtrl = TextEditingController();
-    final confirmCtrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    var obscureOld = true;
-    var obscureNew = true;
-    var obscureConfirm = true;
-    var isLoading = false;
-
-    await showDialog<void>(
+    final changed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) {
-        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
-        final primaryColor = isDark ? AppColors.darkPrimary : AppColors.primary;
-
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) => AlertDialog(
-            backgroundColor: isDark
-                ? AppColors.darkSurface
-                : AppColors.lightSurface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(22),
-            ),
-            title: Row(
-              children: [
-                Icon(Icons.lock_reset_rounded, color: primaryColor),
-                const SizedBox(width: 10),
-                const Text(
-                  'Đổi mật khẩu',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
-            content: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildPasswordField(
-                    controller: oldCtrl,
-                    label: 'Mật khẩu hiện tại',
-                    obscure: obscureOld,
-                    onToggleObscure: () =>
-                        setDialogState(() => obscureOld = !obscureOld),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Vui lòng nhập' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildPasswordField(
-                    controller: newCtrl,
-                    label: 'Mật khẩu mới',
-                    obscure: obscureNew,
-                    onToggleObscure: () =>
-                        setDialogState(() => obscureNew = !obscureNew),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập';
-                      }
-                      if (value.length < 6) return 'Ít nhất 6 ký tự';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildPasswordField(
-                    controller: confirmCtrl,
-                    label: 'Xác nhận mật khẩu mới',
-                    obscure: obscureConfirm,
-                    onToggleObscure: () =>
-                        setDialogState(() => obscureConfirm = !obscureConfirm),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập';
-                      }
-                      if (value != newCtrl.text) return 'Không khớp';
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: isLoading
-                    ? null
-                    : () => Navigator.of(dialogContext).pop(),
-                child: const Text('Hủy'),
-              ),
-              ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        if (!formKey.currentState!.validate()) return;
-                        setDialogState(() => isLoading = true);
-
-                        final error = await context
-                            .read<UserProvider>()
-                            .changePassword(
-                              oldPassword: oldCtrl.text,
-                              newPassword: newCtrl.text,
-                            );
-
-                        if (!ctx.mounted) return;
-                        Navigator.of(dialogContext).pop();
-
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(error ?? 'Đổi mật khẩu thành công!'),
-                            backgroundColor: error == null
-                                ? null
-                                : AppColors.expense,
-                          ),
-                        );
-                      },
-                child: isLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Xác nhận'),
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (_) => const _ChangePasswordDialog(),
     );
 
-    oldCtrl.dispose();
-    newCtrl.dispose();
-    confirmCtrl.dispose();
-  }
-
-  TextFormField _buildPasswordField({
-    required TextEditingController controller,
-    required String label,
-    required bool obscure,
-    required VoidCallback onToggleObscure,
-    required String? Function(String?) validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        labelText: label,
-        suffixIcon: IconButton(
-          icon: Icon(
-            obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-          ),
-          onPressed: onToggleObscure,
-        ),
-      ),
-      validator: validator,
-    );
+    if (!context.mounted || changed != true) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Đổi mật khẩu thành công!')));
   }
 
   Future<void> _showAbout(BuildContext context) async {
@@ -278,6 +130,207 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ChangePasswordDialog extends StatefulWidget {
+  const _ChangePasswordDialog();
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  final _oldCtrl = TextEditingController();
+  final _newCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  bool _obscureOld = true;
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
+  bool _isLoading = false;
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _oldCtrl.dispose();
+    _newCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorText = null;
+    });
+
+    final error = await context.read<UserProvider>().changePassword(
+      oldPassword: _oldCtrl.text,
+      newPassword: _newCtrl.text,
+    );
+
+    if (!mounted) return;
+
+    if (error != null) {
+      setState(() {
+        _isLoading = false;
+        _errorText = error;
+      });
+      return;
+    }
+
+    Navigator.of(context).pop(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkPrimary : AppColors.primary;
+
+    return AlertDialog(
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      title: Row(
+        children: [
+          Icon(Icons.lock_reset_rounded, color: primaryColor),
+          const SizedBox(width: 10),
+          const Text(
+            'Đổi mật khẩu',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_errorText != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.expense.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _errorText!,
+                    style: const TextStyle(
+                      color: AppColors.expense,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              _PasswordField(
+                controller: _oldCtrl,
+                label: 'Mật khẩu hiện tại',
+                obscure: _obscureOld,
+                enabled: !_isLoading,
+                onToggleObscure: () =>
+                    setState(() => _obscureOld = !_obscureOld),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Vui lòng nhập' : null,
+              ),
+              const SizedBox(height: 12),
+              _PasswordField(
+                controller: _newCtrl,
+                label: 'Mật khẩu mới',
+                obscure: _obscureNew,
+                enabled: !_isLoading,
+                onToggleObscure: () =>
+                    setState(() => _obscureNew = !_obscureNew),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập';
+                  }
+                  if (value.length < 6) return 'Ít nhất 6 ký tự';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              _PasswordField(
+                controller: _confirmCtrl,
+                label: 'Xác nhận mật khẩu mới',
+                obscure: _obscureConfirm,
+                enabled: !_isLoading,
+                onToggleObscure: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập';
+                  }
+                  if (value != _newCtrl.text) return 'Không khớp';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(false),
+          child: const Text('Hủy'),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _submit,
+          child: _isLoading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Xác nhận'),
+        ),
+      ],
+    );
+  }
+}
+
+class _PasswordField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final bool obscure;
+  final bool enabled;
+  final VoidCallback onToggleObscure;
+  final String? Function(String?) validator;
+
+  const _PasswordField({
+    required this.controller,
+    required this.label,
+    required this.obscure,
+    required this.enabled,
+    required this.onToggleObscure,
+    required this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      enabled: enabled,
+      decoration: InputDecoration(
+        labelText: label,
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          ),
+          onPressed: enabled ? onToggleObscure : null,
+        ),
+      ),
+      validator: validator,
     );
   }
 }

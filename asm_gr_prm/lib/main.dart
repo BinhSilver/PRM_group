@@ -7,6 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 import 'providers/budget_provider.dart';
+import 'providers/spending_jar_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'providers/user_provider.dart';
@@ -40,6 +41,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
+        ChangeNotifierProvider(create: (_) => SpendingJarProvider()),
       ],
       child: const MyApp(),
     ),

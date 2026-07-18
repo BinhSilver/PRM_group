@@ -22,7 +22,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
-  bool _isEditingName = false;
+  bool _isEditingName = false;      // ....
   bool _isPickingAvatar = false;
   String? _nameErrorText;
 
@@ -165,7 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ProfileHeader(
+            ProfileHeader(              // ....
               user: user,
               avatarBase64: userProvider.avatarBase64,
               onEditProfile: () => _startEditName(displayName),
