@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/budget_model.dart';
-import '../providers/budget_provider.dart';
+import '../providers/spending_jar_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/user_provider.dart';
 import '../utils/app_constants.dart';
@@ -27,20 +26,8 @@ class HomeScreen extends StatelessWidget {
     final userProvider = context.watch<UserProvider>();
     final user = userProvider.currentUser;
     final finance = context.watch<TransactionProvider>();
-    final budgetProvider = context.watch<BudgetProvider>();
-
-    // Calculate remaining budget for current month
-    final now = DateTime.now();
-    final monthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-    final currentBudget = budgetProvider.budgets.firstWhere(
-      (b) => b.month == monthKey,
-      orElse: () =>
-          BudgetModel(month: monthKey, amount: 0, userId: user?.id ?? 0),
-    );
-    final spent = budgetProvider.getSpent(monthKey);
-    final remainingBudget = currentBudget.amount > 0
-        ? (currentBudget.amount - spent)
-        : 0.0;
+    final jarProvider = context.watch<SpendingJarProvider>();
+    final remainingBudget = jarProvider.remainingInJars;
 
     return SafeArea(
       top: false,
@@ -147,13 +134,13 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.account_balance_wallet_rounded,
                     title: 'Ngân sách',
                     color: AppColors.warning,
-                    onTap: () => onTabSelected(3),
+                    onTap: () => onTabSelected(4),
                   ),
                   QuickActionCard(
-                    icon: Icons.tips_and_updates_rounded,
-                    title: 'Gợi ý nhanh',
-                    color: AppColors.secondary,
-                    onTap: () => _showComingSoon(context, 'Gợi ý nhanh'),
+                    icon: Icons.savings_rounded,
+                    title: 'Hũ chi tiêu',
+                    color: AppColors.income,
+                    onTap: () => onTabSelected(4),
                   ),
                   QuickActionCard(
                     icon: Icons.apps_rounded,
@@ -165,41 +152,188 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 22),
-            CommonCard(
-              child: Row(
+            _JarBudgetAlertCard(
+              jarProvider: jarProvider,
+              onOpenSpendingJars: () => onTabSelected(4),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _JarBudgetAlertCard extends StatelessWidget {
+  final SpendingJarProvider jarProvider;
+  final VoidCallback onOpenSpendingJars;
+
+  const _JarBudgetAlertCard({
+    required this.jarProvider,
+    required this.onOpenSpendingJars,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final jars = jarProvider.jars;
+
+    if (jars.isEmpty) {
+      return _AlertShell(
+        icon: Icons.savings_rounded,
+        iconColor: AppColors.primary,
+        title: 'Thông báo hũ chi tiêu',
+        message: 'Bạn chưa có hũ nào để theo dõi ngân sách.',
+        suggestion:
+            'Tạo hũ cho từng loại chi tiêu để app nhắc bạn khi sắp hết tiền.',
+        actionText: 'Tạo hũ',
+        onTap: onOpenSpendingJars,
+      );
+    }
+
+    final overJars = jars
+        .where((jar) => jarProvider.getRemaining(jar) < 0)
+        .toList();
+    if (overJars.isNotEmpty) {
+      overJars.sort(
+        (a, b) =>
+            jarProvider.getRemaining(a).compareTo(jarProvider.getRemaining(b)),
+      );
+      final jar = overJars.first;
+      final overAmount = jarProvider.getRemaining(jar).abs();
+      return _AlertShell(
+        icon: Icons.warning_amber_rounded,
+        iconColor: AppColors.expense,
+        title: 'Hũ ${jar.name} đã vượt mức',
+        message: 'Bạn đã dùng vượt ${CurrencyFormatter.format(overAmount)}.',
+        suggestion:
+            'Nên giảm chi ở nhóm này hoặc điều chỉnh lại số tiền phân bổ cho hũ.',
+        actionText: 'Kiểm tra hũ',
+        onTap: onOpenSpendingJars,
+      );
+    }
+
+    final lowJars =
+        jars.where((jar) {
+          final remaining = jarProvider.getRemaining(jar);
+          return jar.amount > 0 && remaining <= jar.amount * 0.2;
+        }).toList()..sort(
+          (a, b) => jarProvider
+              .getRemaining(a)
+              .compareTo(jarProvider.getRemaining(b)),
+        );
+
+    if (lowJars.isNotEmpty) {
+      final jar = lowJars.first;
+      final remaining = jarProvider.getRemaining(jar);
+      return _AlertShell(
+        icon: Icons.notifications_active_rounded,
+        iconColor: AppColors.warning,
+        title: 'Hũ ${jar.name} sắp hết',
+        message: 'Hũ này còn ${CurrencyFormatter.format(remaining)}.',
+        suggestion:
+            'Hãy ưu tiên khoản cần thiết và hạn chế phát sinh thêm trong nhóm này.',
+        actionText: 'Xem chi tiết',
+        onTap: onOpenSpendingJars,
+      );
+    }
+
+    return _AlertShell(
+      icon: Icons.check_circle_rounded,
+      iconColor: AppColors.income,
+      title: 'Ngân sách đang ổn',
+      message: 'Các hũ chi tiêu vẫn còn trong mức an toàn.',
+      suggestion:
+          'Tiếp tục ghi lại giao dịch đều đặn để giữ thói quen chi tiêu hợp lý.',
+      actionText: 'Xem hũ',
+      onTap: onOpenSpendingJars,
+      titleStyle: theme.textTheme.titleMedium,
+    );
+  }
+}
+
+class _AlertShell extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String message;
+  final String suggestion;
+  final String actionText;
+  final VoidCallback onTap;
+  final TextStyle? titleStyle;
+
+  const _AlertShell({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.message,
+    required this.suggestion,
+    required this.actionText,
+    required this.onTap,
+    this.titleStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: CommonCard(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              backgroundColor: iconColor.withValues(alpha: 0.12),
+              child: Icon(icon, color: iconColor),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                    child: const Icon(
-                      Icons.lightbulb_rounded,
-                      color: AppColors.primary,
+                  Text(
+                    title,
+                    style:
+                        titleStyle?.copyWith(fontWeight: FontWeight.w800) ??
+                        const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    message,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.4,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Gợi ý hôm nay:',
-                          style: TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Hãy ghi lại chi tiêu ngay sau khi thanh toán để kiểm soát tài chính tốt hơn.',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                            height: 1.45,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 8),
+                  Text(
+                    suggestion,
+                    style: TextStyle(
+                      color: iconColor,
+                      fontWeight: FontWeight.w700,
+                      height: 1.35,
                     ),
                   ),
                 ],
               ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              children: [
+                Text(
+                  actionText,
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.primary,
+                ),
+              ],
             ),
           ],
         ),
@@ -319,7 +453,7 @@ class _OverviewCard extends StatelessWidget {
             amount: CurrencyFormatter.format(remainingBudget),
             amountColor: AppColors.warning,
             compact: true,
-            onTap: () => onTabSelected(3), // Chuyển sang tab Ngân sách
+            onTap: () => onTabSelected(4), // Chuyển sang tab Hũ chi tiêu
           ),
         ],
       ),

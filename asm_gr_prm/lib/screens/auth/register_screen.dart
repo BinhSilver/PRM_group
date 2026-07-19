@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/budget_provider.dart';
+import '../../providers/spending_jar_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../utils/app_constants.dart';
@@ -90,10 +91,10 @@ class _RegisterScreenState extends State<RegisterScreen>
     });
 
     final error = await context.read<UserProvider>().register(
-          username: _usernameCtrl.text.trim(),
-          password: _passwordCtrl.text,
-          displayName: _displayNameCtrl.text.trim(),
-        );
+      username: _usernameCtrl.text.trim(),
+      password: _passwordCtrl.text,
+      displayName: _displayNameCtrl.text.trim(),
+    );
 
     if (!mounted) return;
 
@@ -110,6 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     await Future.wait([
       context.read<TransactionProvider>().fetchTransactions(userId),
       context.read<BudgetProvider>().loadBudgets(userId),
+      context.read<SpendingJarProvider>().loadJars(userId),
     ]);
 
     if (!mounted) return;
@@ -119,7 +121,11 @@ class _RegisterScreenState extends State<RegisterScreen>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.celebration_rounded, color: Colors.white, size: 18),
+            const Icon(
+              Icons.celebration_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 10),
             Text(
               'Chào mừng ${_displayNameCtrl.text.trim()}!',
@@ -135,7 +141,8 @@ class _RegisterScreenState extends State<RegisterScreen>
 
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const MainScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const MainScreen(),
         transitionDuration: const Duration(milliseconds: 500),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(opacity: animation, child: child),
@@ -269,7 +276,9 @@ class _RegisterScreenState extends State<RegisterScreen>
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: isDark ? AppColors.darkTextMain : AppColors.lightTextMain,
+                color: isDark
+                    ? AppColors.darkTextMain
+                    : AppColors.lightTextMain,
               ),
             ),
             Text(
@@ -335,7 +344,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                 if (v == null || v.trim().isEmpty) {
                   return 'Vui lòng nhập tên hiển thị';
                 }
-                if (v.trim().length < 2) return 'Tên quá ngắn (ít nhất 2 ký tự)';
+                if (v.trim().length < 2) {
+                  return 'Tên quá ngắn (ít nhất 2 ký tự)';
+                }
                 return null;
               },
               onFieldSubmitted: (_) =>
@@ -397,7 +408,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                     _obscurePassword
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
-                    color: isDark ? AppColors.darkTextSub : AppColors.lightTextSub,
+                    color: isDark
+                        ? AppColors.darkTextSub
+                        : AppColors.lightTextSub,
                     size: 20,
                   ),
                   onPressed: () =>
@@ -439,7 +452,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                     _obscureConfirm
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
-                    color: isDark ? AppColors.darkTextSub : AppColors.lightTextSub,
+                    color: isDark
+                        ? AppColors.darkTextSub
+                        : AppColors.lightTextSub,
                     size: 20,
                   ),
                   onPressed: () =>
@@ -521,8 +536,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                   color: i < _passwordStrength
                       ? colors[_passwordStrength]
                       : (isDark
-                          ? AppColors.darkBorder
-                          : const Color(0xFFEEE0F0)),
+                            ? AppColors.darkBorder
+                            : const Color(0xFFEEE0F0)),
                 ),
               ),
             );
@@ -533,9 +548,7 @@ class _RegisterScreenState extends State<RegisterScreen>
           'Độ mạnh: ${labels[_passwordStrength]}',
           style: TextStyle(
             fontSize: 11,
-            color: _passwordStrength > 0
-                ? colors[_passwordStrength]
-                : subColor,
+            color: _passwordStrength > 0 ? colors[_passwordStrength] : subColor,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -598,11 +611,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   Widget _buildLabel(String text, Color color) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: color,
-      ),
+      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
     );
   }
 
@@ -613,12 +622,11 @@ class _RegisterScreenState extends State<RegisterScreen>
     required Color primaryColor,
     Widget? suffixIcon,
   }) {
-    final fillColor =
-        isDark ? const Color(0xFF2F1B38) : const Color(0xFFFDF0F9);
-    final borderColor =
-        isDark ? AppColors.darkBorder : const Color(0xFFEEE0F0);
-    final hintColor =
-        isDark ? AppColors.darkTextSub : AppColors.lightTextSub;
+    final fillColor = isDark
+        ? const Color(0xFF2F1B38)
+        : const Color(0xFFFDF0F9);
+    final borderColor = isDark ? AppColors.darkBorder : const Color(0xFFEEE0F0);
+    final hintColor = isDark ? AppColors.darkTextSub : AppColors.lightTextSub;
 
     return InputDecoration(
       hintText: hint,
@@ -641,15 +649,13 @@ class _RegisterScreenState extends State<RegisterScreen>
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide:
-            BorderSide(color: AppColors.expense.withValues(alpha: 0.7)),
+        borderSide: BorderSide(color: AppColors.expense.withValues(alpha: 0.7)),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: AppColors.expense),
       ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
     );
   }
 }

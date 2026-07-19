@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/budget_provider.dart';
+import '../../providers/spending_jar_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../utils/app_constants.dart';
@@ -50,8 +51,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _loadSavedUsername() async {
-    final username =
-        await context.read<UserProvider>().getStoredUsername();
+    final username = await context.read<UserProvider>().getStoredUsername();
     if (username != null && mounted) {
       _usernameCtrl.text = username;
     }
@@ -77,10 +77,10 @@ class _LoginScreenState extends State<LoginScreen>
     });
 
     final error = await context.read<UserProvider>().login(
-          username: _usernameCtrl.text,
-          password: _passwordCtrl.text,
-          rememberMe: _rememberMe,
-        );
+      username: _usernameCtrl.text,
+      password: _passwordCtrl.text,
+      rememberMe: _rememberMe,
+    );
 
     if (!mounted) return;
 
@@ -97,18 +97,18 @@ class _LoginScreenState extends State<LoginScreen>
     await Future.wait([
       context.read<TransactionProvider>().fetchTransactions(userId),
       context.read<BudgetProvider>().loadBudgets(userId),
+      context.read<SpendingJarProvider>().loadJars(userId),
     ]);
 
     if (!mounted) return;
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const MainScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const MainScreen(),
         transitionDuration: const Duration(milliseconds: 500),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(
-          opacity: animation,
-          child: child,
-        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }
@@ -116,17 +116,20 @@ class _LoginScreenState extends State<LoginScreen>
   void _goToRegister() {
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const RegisterScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const RegisterScreen(),
         transitionDuration: const Duration(milliseconds: 400),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) => SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeOut),
-          ),
-          child: child,
-        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            SlideTransition(
+              position:
+                  Tween<Offset>(
+                    begin: const Offset(1, 0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                  ),
+              child: child,
+            ),
       ),
     );
   }
@@ -442,14 +445,11 @@ class _LoginScreenState extends State<LoginScreen>
       decoration: BoxDecoration(
         color: AppColors.expense.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.expense.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.expense.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline_rounded,
-              color: AppColors.expense, size: 18),
+          Icon(Icons.error_outline_rounded, color: AppColors.expense, size: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -469,11 +469,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildLabel(String text, Color color) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: color,
-      ),
+      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
     );
   }
 
@@ -511,15 +507,13 @@ class _LoginScreenState extends State<LoginScreen>
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(
-            color: AppColors.expense.withValues(alpha: 0.7)),
+        borderSide: BorderSide(color: AppColors.expense.withValues(alpha: 0.7)),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: AppColors.expense),
       ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
     );
   }
 }
