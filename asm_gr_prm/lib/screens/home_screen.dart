@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/transaction_model.dart';
 import '../providers/spending_jar_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/user_provider.dart';
@@ -9,6 +10,7 @@ import '../utils/currency_formatter.dart';
 import '../widgets/common_card.dart';
 import '../widgets/quick_action_card.dart';
 import '../widgets/section_title.dart';
+import 'add_transaction_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final ValueChanged<int> onTabSelected;
@@ -155,6 +157,154 @@ class HomeScreen extends StatelessWidget {
             _JarBudgetAlertCard(
               jarProvider: jarProvider,
               onOpenSpendingJars: () => onTabSelected(4),
+            ),
+            const SizedBox(height: 22),
+            _RecentTransactionsSection(
+              transactions: finance.transactions,
+              onSeeAll: () => onTabSelected(1),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Giao dịch gần đây trên Trang chủ (tối đa 5 mục).
+/// Tìm kiếm / lọc / sắp xếp đầy đủ nằm ở tab Giao dịch.
+class _RecentTransactionsSection extends StatelessWidget {
+  final List<TransactionModel> transactions;
+  final VoidCallback onSeeAll;
+
+  const _RecentTransactionsSection({
+    required this.transactions,
+    required this.onSeeAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Lấy tối đa 5 giao dịch mới nhất (provider đã sort theo filter hiện tại)
+    final recent = transactions.take(5).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: SectionTitle(title: 'Giao dịch gần đây'),
+            ),
+            TextButton(
+              onPressed: onSeeAll,
+              child: const Text('Xem tất cả'),
+            ),
+          ],
+        ),
+        if (recent.isEmpty)
+          CommonCard(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.receipt_long_outlined,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Chưa có giao dịch. Thêm giao dịch để theo dõi thu chi.',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          CommonCard(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              children: [
+                for (var i = 0; i < recent.length; i++) ...[
+                  if (i > 0)
+                    Divider(
+                      height: 1,
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                    ),
+                  _RecentTransactionTile(transaction: recent[i]),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _RecentTransactionTile extends StatelessWidget {
+  final TransactionModel transaction;
+
+  const _RecentTransactionTile({required this.transaction});
+
+  @override
+  Widget build(BuildContext context) {
+    final isExpense = transaction.type == 'expense';
+    final color = isExpense ? AppColors.expense : AppColors.income;
+    final sign = isExpense ? '-' : '+';
+
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AddTransactionScreen(transaction: transaction),
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: color.withValues(alpha: 0.12),
+              child: Icon(
+                isExpense ? Icons.remove_rounded : Icons.add_rounded,
+                color: color,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    transaction.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    CurrencyFormatter.formatDate(transaction.date),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              '$sign${CurrencyFormatter.format(transaction.amount)}',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ],
         ),

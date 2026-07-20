@@ -56,11 +56,9 @@ class TransactionProvider with ChangeNotifier {
         sortOrder: _sortOrder,
       );
 
-      final summary = await _repository.getFinancialSummary(
-        userId,
-        startDate: _startDate,
-        endDate: _endDate,
-      );
+      // Tổng quan hiển thị số liệu tổng (không theo filter) — giống bản test.
+      // Danh sách vẫn áp dụng search / type / time / sort.
+      final summary = await _repository.getFinancialSummary(userId);
       _totalIncome = summary['income'] ?? 0;
       _totalExpense = summary['expense'] ?? 0;
       _balance = summary['balance'] ?? 0;
@@ -133,13 +131,38 @@ class TransactionProvider with ChangeNotifier {
     fetchTransactions(userId);
   }
 
+  /// Chỉ đổi bộ lọc thời gian, giữ nguyên Thu/Chi + search + sort.
+  void setTimeFilter(int userId, TimeFilterType timeType) {
+    _timeFilterType = timeType;
+    fetchTransactions(userId);
+  }
+
   void setSearchQuery(int userId, String query) {
     if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 300), () {
-      _searchQuery = query;
+      // Giống test: gán query; rỗng thì coi như không search.
+      final trimmed = query.trim();
+      _searchQuery = trimmed.isEmpty ? null : trimmed;
       fetchTransactions(userId);
     });
   }
+
+  void clearSearch(int userId) {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+    _searchQuery = null;
+    fetchTransactions(userId);
+  }
+
+  /// Xóa search + Thu/Chi + thời gian (giữ sort).
+  void clearAllFilters(int userId) {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+    _searchQuery = null;
+    _selectedType = null;
+    _timeFilterType = TimeFilterType.all;
+    fetchTransactions(userId);
+  }
+
+  String? get searchQuery => _searchQuery;
 
   void setTypeFilter(int userId, String? type) {
     _selectedType = type;
