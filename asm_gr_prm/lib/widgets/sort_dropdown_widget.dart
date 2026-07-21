@@ -37,7 +37,7 @@ class SortDropdownWidget extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Icon(
@@ -49,7 +49,10 @@ class SortDropdownWidget extends StatelessWidget {
           DropdownButton<SortOption>(
             value: currentOption,
             underline: const SizedBox(),
-            icon: const Icon(Icons.arrow_drop_down_rounded, color: AppColors.primary),
+            icon: const Icon(
+              Icons.arrow_drop_down_rounded,
+              color: AppColors.primary,
+            ),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.primary,
               fontWeight: FontWeight.w700,

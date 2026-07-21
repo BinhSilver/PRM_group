@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../utils/app_constants.dart';
 
+// Giữ thêm yesterday/lastMonth/custom để không vỡ switch provider cũ.
+// UI filter chính trên màn Giao dịch dùng FilterBottomSheet (all/today/week/month/year).
 enum TimeFilterType { all, today, yesterday, week, month, lastMonth, year, custom }
 
 class TimeFilterWidget extends StatelessWidget {
@@ -16,24 +18,21 @@ class TimeFilterWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Chip nhanh giống thứ tự bản test (+ yesterday/lastMonth nếu cần mở rộng).
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          _buildFilterChip(context, 'Hôm nay', TimeFilterType.today),
+          _buildFilterChip(context, 'Tất cả', TimeFilterType.all),
           const SizedBox(width: 8),
-          _buildFilterChip(context, 'Hôm qua', TimeFilterType.yesterday),
+          _buildFilterChip(context, 'Hôm nay', TimeFilterType.today),
           const SizedBox(width: 8),
           _buildFilterChip(context, 'Tuần này', TimeFilterType.week),
           const SizedBox(width: 8),
           _buildFilterChip(context, 'Tháng này', TimeFilterType.month),
           const SizedBox(width: 8),
-          _buildFilterChip(context, 'Tháng trước', TimeFilterType.lastMonth),
-          const SizedBox(width: 8),
           _buildFilterChip(context, 'Năm nay', TimeFilterType.year),
-          const SizedBox(width: 8),
-          _buildFilterChip(context, 'Tất cả', TimeFilterType.all),
         ],
       ),
     );

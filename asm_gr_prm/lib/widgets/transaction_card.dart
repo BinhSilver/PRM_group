@@ -10,11 +10,13 @@ import '../utils/currency_formatter.dart';
 class TransactionCard extends StatelessWidget {
   final TransactionModel transaction;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const TransactionCard({
     super.key,
     required this.transaction,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -29,6 +31,7 @@ class TransactionCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
